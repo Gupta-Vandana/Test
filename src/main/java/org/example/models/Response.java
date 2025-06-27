@@ -16,9 +16,11 @@ public class Response {
 
     }
 
-    public Response(int httpStatusCode, String body) {
+    public Response(int httpStatusCode, String body, String serverAssigned) {
         this.httpStatusCode = httpStatusCode;
         this.body = body;
+        this.serverAssigned = serverAssigned;
+
     }
 
     public Response(int httpStatusCode, String serverAssigned, Object body) {

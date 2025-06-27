@@ -8,11 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Arrays;
 import org.example.enums.LoadBalanceAlgo;
-import org.example.models.Request;
-import org.example.models.Response;
-import org.example.models.Server;
-import org.example.models.Service;
-import org.example.models.WhitelistingConfig;
+import org.example.models.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -20,6 +16,7 @@ class GatewayLoadBalancerTests {
 
     // Constants
     private static final String SERVICE_B_TOKEN = "service_b_token";
+    private static final String SERVICE_A_TOKEN = "service_a_token";
 
     private static final String REQUEST1_IP1 = "http://192.0.0.1";
 
@@ -48,6 +45,7 @@ class GatewayLoadBalancerTests {
 
         // TODO: Implement gateway GatewayImpl()
         // add dependencies for gateway
+        gateway = new GatewayImpl();
     }
 
     private void buildServers() {
@@ -57,9 +55,9 @@ class GatewayLoadBalancerTests {
     }
 
     private void buildServices() {
-        serviceA = new Service("serviceA", buildEnableAllWhiteListingConfig(), LoadBalanceAlgo.ROUND_ROBIN);
-        serviceC = new Service("serviceC", buildEnableAllWhiteListingConfig(), LoadBalanceAlgo.ROUND_ROBIN);
-        serviceB = new Service("serviceB", buildWhiteListingConfigForServiceB(), LoadBalanceAlgo.LEAST_REQUESTS);
+        serviceA = new Service("serviceA", buildEnableAllWhiteListingConfig(), LoadBalanceAlgo.ROUND_ROBIN, buildEnableAuthConfigConfigForServiceA());
+        serviceC = new Service("serviceC", buildEnableAllWhiteListingConfig(), LoadBalanceAlgo.ROUND_ROBIN, buildEnableAuthConfigConfigForServiceB());
+        serviceB = new Service("serviceB", buildWhiteListingConfigForServiceB(), LoadBalanceAlgo.LEAST_REQUESTS, buildDisableAuthConfigConfigForServiceB());
     }
 
     @Test
@@ -164,7 +162,7 @@ class GatewayLoadBalancerTests {
     @Test
     void testRequestWithInvalidIpShouldReturn400() {
         Request request = new Request("http://256.0.0.1", "http://serviceB.cred.com/products", "POST",
-                null, REQUEST_1_ID, null);
+                null, REQUEST_1_ID, SERVICE_B_TOKEN);
         gateway.registerService(serviceB);
         Response response = gateway.processRequest(request);
         assertNotNull(response);
@@ -175,7 +173,7 @@ class GatewayLoadBalancerTests {
     void testRequestFromAnUnAuthorizedIpShouldReturn403() {
         gateway.registerService(serviceB);
         Request request = new Request("http://127.0.0.1", "http://serviceB.cred.com/products", "POST",
-                null, REQUEST_1_ID, SERVICE_B_TOKEN);
+                null, REQUEST_1_ID, null);
         Response response = gateway.processRequest(request);
         assertEquals(403, response.getHttpStatusCode());
     }
@@ -184,7 +182,7 @@ class GatewayLoadBalancerTests {
     void testRequestWithNoServersAvailableShouldReturn503() {
         gateway.registerService(serviceA);
         Request request = new Request(REQUEST1_IP1, "http://serviceA.cred.com/products", "POST",
-                null, REQUEST_1_ID, null);
+                null, REQUEST_1_ID, SERVICE_A_TOKEN);
         Response response = gateway.processRequest(request);
         assertEquals(503, response.getHttpStatusCode());
     }
@@ -197,7 +195,7 @@ class GatewayLoadBalancerTests {
 
         // Req-1
         Request request = new Request(REQUEST1_IP1, "http://serviceA.cred.com/products", "POST",
-                null, REQUEST_1_ID, null);
+                null, REQUEST_1_ID, SERVICE_A_TOKEN);
         Response response = gateway.processRequest(request);
         assertEquals(200, response.getHttpStatusCode());
         assertEquals(SERVER_1_IP, response.getServerAssigned(), "For Req-1, server 1 should be selected");
@@ -225,7 +223,7 @@ class GatewayLoadBalancerTests {
 
         // Req-1
         Request request = new Request(REQUEST1_IP1, "http://serviceA.cred.com/products", "POST",
-                null, REQUEST_1_ID, null);
+                null, REQUEST_1_ID, SERVICE_A_TOKEN);
         Response response = gateway.processRequest(request);
         assertEquals(200, response.getHttpStatusCode());
         assertEquals(SERVER_1_IP, response.getServerAssigned(), "For Req-1, server 1 should be selected");
@@ -349,5 +347,19 @@ class GatewayLoadBalancerTests {
 
     private WhitelistingConfig buildWhiteListingConfigForServiceB() {
         return new WhitelistingConfig(true, Arrays.asList(REQUEST1_IP1));
+    }
+
+    private AuthConfig buildEnableAuthConfigConfigForServiceB() {
+        return new AuthConfig(true, "service_b_token");
+    }
+    private AuthConfig buildDisableAuthConfigConfigForServiceB() {
+        return new AuthConfig(false, "service_b_token");
+    }
+    private AuthConfig buildEnableAuthConfigConfigForServiceA() {
+        return new AuthConfig(true, SERVICE_A_TOKEN);
+    }
+
+    private AuthConfig buildDisableAuthConfigConfig() {
+        return new AuthConfig(true, null);
     }
 }

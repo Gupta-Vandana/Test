@@ -15,4 +15,6 @@ public interface Gateway {
     boolean removeServer(Server server, String serviceName);
 
     Response processRequest(Request request);
+
+   // A Server can be registered to a service with the gateway, and also can be de-registered from the gateway.
 }
