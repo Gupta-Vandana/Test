@@ -1,6 +1,7 @@
 package org.example.models;
 
 import org.example.enums.LoadBalanceAlgo;
+import org.example.service.AlgoAssignmnetStartegy;
 
 public class Service {
     private String name;
@@ -8,6 +9,7 @@ public class Service {
     private WhitelistingConfig whitelistingConfig;
 
     private LoadBalanceAlgo loadBalanceAlgo;
+    private AlgoAssignmnetStartegy algoAssignmnetStartegy;
 
     public Integer getCurrentServer() {
         return currentServer;
@@ -34,6 +36,7 @@ public class Service {
         this.whitelistingConfig = whitelistingConfig;
         this.loadBalanceAlgo = loadBalanceAlgo;
         this.authConfig = authConfig;
+      //  this.algoAssignmnetStartegy = assignStrategy(loadBalanceAlgo);
     }
 
     public String getName() {

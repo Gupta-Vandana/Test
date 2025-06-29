@@ -42,8 +42,10 @@ public class GatewayImpl implements Gateway {
         Service service = services.get(serviceName);
         if (service == null) return false;
 
-        ipToServer.put(server.getIp(), server);
-        serviceToServers.computeIfAbsent(serviceName, k -> new ArrayList<>()).add(server);
+        synchronized (server) {
+            ipToServer.put(server.getIp(), server);
+            serviceToServers.computeIfAbsent(serviceName, k -> new ArrayList<>()).add(server);
+        }
         return true;
     }
 
