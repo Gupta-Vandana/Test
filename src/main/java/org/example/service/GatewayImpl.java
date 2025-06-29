@@ -148,7 +148,7 @@ public class GatewayImpl implements Gateway {
         return new Response(200, "Request [" + request.getRequestId() + "] to " +
                 service.getName() + " served by IP: " + server.getIp(), server.getIp());
     }
-
+///  please koi jadu krdo bhagwaan, and mera kara do
     //Least Connection
     private Response assignServerByLeastConnection(LoadBalanceAlgo algo, Service service, Request request) {
 
